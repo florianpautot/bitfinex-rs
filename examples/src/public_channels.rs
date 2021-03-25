@@ -3,6 +3,9 @@ extern crate bitfinex;
 use bitfinex::{ errors::*, events::*, websockets::* };
 use bitfinex::{ pairs::*, precision::* };
 
+use bitfinex::api::*;
+use bitfinex::currency::*;
+
 struct WebSocketHandler;
 
 impl EventHandler for WebSocketHandler {
@@ -29,6 +32,10 @@ impl EventHandler for WebSocketHandler {
             println!("Ticker Trading ({})- Bid {:?}, Ask: {}", channel, trading.bid, trading.ask);
         } else if let DataEvent::RawBookEvent(channel, raw_book) = event {
             println!("Raw book ({}) - Price {:?}, Amount: {}", channel, raw_book.price, raw_book.amount);
+        } else if let DataEvent::BookTradingSnapshotEvent(channel, book) = event {
+            println!("BookTradingSnapshotEvent ({}) - Size {:?}", channel, book.len());
+        } else if let DataEvent::BookTradingUpdateEvent(channel, pair) = event {
+            println!("BookTradingUpdateEvent ({}) - Price {:?}, Amount: {}", channel, pair.price, pair.amount);
         }
         // ... Add for all events you have subscribed (Trades, Books, ...)
     }
@@ -39,25 +46,35 @@ impl EventHandler for WebSocketHandler {
 }
 
 fn main() {
+
+    let api = Bitfinex::new(None, None);
+    let trading_pairs = api.pairs.all_pairs();
+    match trading_pairs {
+        Ok(answer) => println!("pairs: {:?}", answer.len()),
+        Err(e) => println!("Error: {}", e),
+    }
+
     let mut web_socket: WebSockets = WebSockets::new();
 
     web_socket.add_event_handler(WebSocketHandler);
     web_socket.connect().unwrap(); // check error
 
     // TICKER
-    web_socket.subscribe_ticker(BTCUSD, EventType::Trading);
+    //web_socket.subscribe_ticker(ALL, EventType::Trading);
 
     // TRADES
-    web_socket.subscribe_trades(BTCUSD, EventType::Trading);
+    //web_socket.subscribe_trades(ALL, EventType::Trading);
 
     // BOOKS
-    web_socket.subscribe_books(BTCUSD, EventType::Trading, P0, "F0", 25);
+    //web_socket.subscribe_books(BTCUSD, EventType::Trading, P0, "F0", 1);
+    //web_socket.subscribe_books(ETHBTC, EventType::Trading, P0, "F0", 1);
 
-    // RAW BOOKS
-    web_socket.subscribe_raw_books(BTCUSD, EventType::Trading);
-
-    // CANDLES
-    web_socket.subscribe_candles(BTCUSD, "1m");
+    //
+    // // RAW BOOKS
+    //web_socket.subscribe_raw_books(BTCUSD, EventType::Trading);
+    //
+    // // CANDLES
+    // web_socket.subscribe_candles(BTCUSD, "1m");
 
     web_socket.event_loop().unwrap(); // check error
 }

@@ -6,7 +6,7 @@ use reqwest::header::{HeaderMap, HeaderName, HeaderValue, USER_AGENT, CONTENT_TY
 use std::io::Read;
 use serde::Serialize;
 
-static API1_HOST : &'static str = "https://api.bitfinex.com/v2/";
+static API1_HOST : &'static str = "https://api-pub.bitfinex.com/v2/";
 static API_SIGNATURE_PATH : &'static str = "/api/v2/auth/r/";
 static NO_PARAMS: &'static [(); 0] = &[];
 
